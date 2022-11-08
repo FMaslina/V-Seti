@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+{% load user_filters %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 p-5">
+        <div class="card">
+            <div class="card-header">Войти</div>
+            <div class="card-body">
+                {% if form.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        Неверная пара логин-пароль
+                    </div>
+                {% endif %}
+
+                {% if next %}
+                    <div class="alert alert-info" role="alert">
+                        Для того чтобы смотреть эту страницу, авторизуйтесь
+                    </div>
+                {% else %}
+                    <div class="alert alert-info" role="alert">Авторизуйтесь</div>
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="text" value="{{ next }}">
+                    <div class="form-group row">
+                        <label for="{{ form.username.id_for_label }}" class="col-md-4 col-form-label text-md-right">
+                            Логин
+                        </label>
+                        <div class="col-md-6">
+                            {{ form.username|add_class:"form-control" }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="{{ form.password.id_for_label }}" class="col-md-4 col-form-label text-md-right">
+                            Пароль
+                        </label>
+                        <div class="col-md-6">
+                            {{ form.password|add_class:"form-control" }}
+                        </div>
+                    </div>
+                    <div class="col-md-6 offset-md-4">
+                        <button type="submit" class="btn btn-primary">
+                            Войти
+                        </button>
+                        <a href="{% url 'password_reset' %}" class="btn btn-link">
+                            Забыли пароль?
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
