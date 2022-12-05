@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %} Просмотр поста {% endblock %}
+{% block header %} Пост <a href="{% url 'profile' username %}"> {{ post.author.username }}</a> {% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-3 mb-3 mt-1">
+            <div class="card">
+                <div class="card-header">
+                    Автор поста: {{ username }}
+                    Дата публикации: {{ post.pub_date|date:"d M Y" }}
+                </div>
+                <div class="card-body">
+                    {{ post.text }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
