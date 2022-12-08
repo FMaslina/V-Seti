@@ -45,7 +45,7 @@ def new_post(request):
 @login_required
 def profile(request, username):
     user = get_object_or_404(User, username=username)
-    post_list = Post.objects.order_by('-pub_date').all()
+    post_list = Post.objects.order_by('-pub_date').filter(author=user).all()
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
@@ -59,5 +59,31 @@ def post_view(request, username, post_id):
 
 
 def post_edit(request, username, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    username = get_object_or_404(User, username=username)
+    is_edit = True
+    if post.author != request.user:
+        return redirect(
+            'post', post.author.username, post.id
+        )
+    if request.method == "POST":
+        form = NewPostForm(request.POST, instance=post)
+        if form.is_valid():
+            post.save()
+            return redirect('index')
+        return render(request, 'new_post.html', {"form": form, "post": post, "username": username, "is_edit": is_edit})
+    form = NewPostForm(instance=post)
+    return render(request, 'new_post.html', {"form": form, "post": post, "username": username, "is_edit": is_edit})
 
-    return render(request, 'post_new.html', {})
+
+def post_delete(request, post_id, username):
+    post = get_object_or_404(Post, id=post_id)
+    user = get_object_or_404(User, username=username)
+    post_list = Post.objects.order_by('-pub_date').filter(author=user).all()
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
+    if request.method == "POST":
+        post.delete()
+        return render(request, 'profile.html', {"post": post, "user": user, "page": page, "paginator": paginator})
+    return render(request, 'profile.html', {"post": post, "user": user, "page": page, "paginator": paginator})

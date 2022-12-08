@@ -35,17 +35,24 @@
                 <div class="card mb-3 mt-1 shadow-sm">
                     <div class="card-body">
                         <p class="card-text">
-                            {{ post.text|linebreaksbr }}
+                            <a href="{% url 'post' post.author.username post.id %}" class="text-decoration-none text-reset">{{ post.text|linebreaksbr }}</a>
                         </p>
                         <div class="d-flex-justify-content-between align-items-center">
                             <div class="btn-group">
                                 {% if request.user.username == user.username %}
-                                    <a class="btn btn-sm text-muted" href="{% url 'post' user.username post.id %}">
+                                    <a class="btn btn-sm text-muted" href="{% url 'post_edit' user.username post.id %}">
                                         Редактировать
                                     </a>
+                                    <form action="{% url 'post_delete' user.username post.id %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-sm text-danger" value="Удалить">
+                                    </form>
                                 {% endif %}
                             </div>
                             <small class="text-muted">Дата публикации: {{ post.pub_date|date:"d M Y" }}</small>
+                            {% if post.group %}
+                                <small class="text-muted">Группа: <a href="{% url 'group' post.group.slug %}">{{ post.group.slug }}</a></small>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

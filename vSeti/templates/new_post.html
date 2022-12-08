@@ -1,16 +1,31 @@
 {% extends "base.html" %}
-{% block header %}Создание нового поста{% endblock %}
+{% block header %}
+{% if is_edit %}
+Редактирование поста
+{% else %}
+Создание нового поста
+{% endif %}
+{% endblock %}
 {% block content %}
 {% load user_filters %}
   <div class="row justify-content-center">
     <div class="col-md-8 p-5">
       <div class="card">
-        <div class="card-header">Создание нового поста</div>
-        <div class="card-body">
+          {% if is_edit %}
+          <div class="card-header">Редактирование поста</div>
+          {% else %}
+          <div class="card-header">Создание нового поста</div>
+          {% endif %}
+          <div class="card-body">
           {% if form.errors %}
             <div class="alert alert-danger" role="alert">Ошибка!</div>
           {% endif %}
-          <form method="post" action="{% url 'new_post' %}">
+          {% if is_edit %}
+              <form method="post" action="{% url 'post_edit' post.author.username post.id %}">
+          {% else %}
+            <form method="post" action="{% url 'new_post' %}">
+          {% endif %}
+
               {% csrf_token %}
                     {% for field in form %}
                         <div class="form-group row" aria-required={% if field.field.required %}"true"{% else %}"false"{% endif %}>
@@ -26,7 +41,11 @@
                         </div>
                     {% endfor %}
                     <div class="col-md-6 offset-md-4">
+                        {% if is_edit %}
+                        <button type="submit" class="btn btn-primary">Изменить пост</button>
+                        {% else %}
                         <button type="submit" class="btn btn-primary">Создать пост</button>
+                        {% endif %}
                     </div>
           </form>
         </div>

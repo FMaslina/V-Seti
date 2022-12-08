@@ -6,13 +6,19 @@
         <div class="col-md-3 mb-3 mt-1">
             <div class="card">
                 <div class="card-header">
-                    Автор поста: {{ username }}
-                    Дата публикации: {{ post.pub_date|date:"d M Y" }}
+                    Автор поста: {{ username }}<br>
+                    Дата публикации: {{ post.pub_date|date:"d M Y" }}<br>
                 </div>
                 <div class="card-body">
                     {{ post.text }}
                 </div>
             </div>
+            {% if request.user.username == post.author.username %}
+                <a class="btn btn-sm text-muted" href="{% url 'post_edit' user.username post.id %}">
+                    Редактировать
+                </a>
+
+            {% endif %}
         </div>
     </div>
 {% endblock %}
