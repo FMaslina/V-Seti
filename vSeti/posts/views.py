@@ -1,8 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
-from .forms import NewPostForm
-from .models import Post, Group, User
+from .forms import NewPostForm, NewCommentForm
+from .models import Post, Group, User, Comment
 
 
 def index(request):
@@ -31,7 +31,7 @@ def group_post(request, slug):
 @login_required
 def new_post(request):
     if request.method == "POST":
-        form = NewPostForm(request.POST)
+        form = NewPostForm(request.POST, files=request.FILES or None)
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
@@ -55,7 +55,8 @@ def profile(request, username):
 def post_view(request, username, post_id):
     post = get_object_or_404(Post, id=post_id)
     username = get_object_or_404(User, username=username)
-    return render(request, 'post.html', {"post": post, "username": username})
+    comments = post.comments.all()
+    return render(request, 'post.html', {"post": post, "username": username, "comments": comments})
 
 
 def post_edit(request, username, post_id):
@@ -67,7 +68,7 @@ def post_edit(request, username, post_id):
             'post', post.author.username, post.id
         )
     if request.method == "POST":
-        form = NewPostForm(request.POST, instance=post)
+        form = NewPostForm(request.POST, instance=post, files=request.FILES or None)
         if form.is_valid():
             post.save()
             return redirect('index')
@@ -90,8 +91,6 @@ def post_delete(request, post_id, username):
 
 
 def page_not_found(request, exception):
-    # Переменная exception содержит отладочную информацию,
-    # выводить её в шаблон пользователской страницы 404 мы не станем
     return render(
         request,
         "misc/404.html",
@@ -102,3 +101,16 @@ def page_not_found(request, exception):
 
 def server_error(request):
     return render(request, "misc/500.html", status=500)
+
+
+@login_required
+def add_comment(request, post_id, username):
+    post = get_object_or_404(Post, id=post_id)
+    username = get_object_or_404(User, username=username)
+    form = NewCommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = get_object_or_404(Post, post_id=post_id)
+        comment.save()
+    return redirect('post', username, post.id)
