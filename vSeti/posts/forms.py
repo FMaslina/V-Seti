@@ -15,4 +15,4 @@ class NewPostForm(forms.ModelForm):
 class NewCommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ['text', 'post']
+        fields = ['text']

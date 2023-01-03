@@ -1,25 +1,30 @@
 {% load user_filters %}
 {% if user.is_authenticated %}
 <div class="card my-4">
-    <form method="post" action="{% url 'add_comment' post.author.username post.id %}">
-        {% csrf_token %}
-        <h5 class="card-header">Добавить комментарий</h5>
-        <div class="card-body">
-            <form>
-                <div class="form-group">
-                    <textarea></textarea>
-                    {{ form.text }}
-                </div>
-                <button type="submit" class="btn btn-primary">Отправить</button>
-            </form>
-        </div>
-    </form>
+    {% if is_edit %}
+        <form method="post" action="{% url 'edit_comment' post.author.username post.id comment.id %}">
+    {% else %}
+        <form method="post" action="{% url 'post' post.author.username post.id %}">
+    {% endif %}
+            {% csrf_token %}
+            <h5 class="card-header">Добавить комментарий</h5>
+            <div class="card-body">
+                <form>
+                    <div class="form-group">
+                        {% for field in form %}
+                            {{ field|add_class:"form-control" }}
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </form>
+            </div>
+        </form>
 </div>
 {% endif %}
 
 {% for comment in comments %}
 <div class="media mb-4">
-    <div class="media-body">
+    <div class="media-body col-md-4">
         <h5 class="mt-0">
             <a href="{% url 'profile' comment.author.username %}" name="comment_{{ comment.id }}">
                 {{ comment.author.username }}
@@ -27,5 +32,14 @@
         </h5>
         {{ comment.text }}
     </div>
+    {% if request.user.username == post.author.username %}
+        <a class="btn btn-sm text-muted" href="{% url 'edit_comment' user.username post.id comment.id %}">
+            Редактировать
+        </a>
+        <form action="{% url 'delete_comment' user.username post.id comment.id %}" method="post">
+            {% csrf_token %}
+            <input type="submit" class="btn btn-sm text-danger" value="Удалить">
+        </form>
+    {% endif %}
 </div>
 {% endfor %}

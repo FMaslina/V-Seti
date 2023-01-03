@@ -5,22 +5,7 @@
 {% load thumbnail %}
     <h1>Последние опубликованные посты</h1>
     {% for post in page %}
-    <div class="card">
-        <div class="card-header">
-            <h3>
-            Автор: <a href="{% url 'profile' post.author.username %}" class="text-decoration-none text-reset">{{ post.author.username }}</a>, Дата публикации: {{ post.pub_date }}
-            {% if post.group %}
-            Группа: <a href="{% url 'group' post.group.slug %}">{{ post.group.slug }}</a>
-            {% endif %}
-            </h3>
-        </div>
-        <div class="card-body">
-            <p><a href="{% url 'post' post.author.username post.id %}" class="text-decoration-none text-reset">{{ post.text|linebreaksbr }}</a></p>
-            {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
-                <img class="card-img" src="{{ im.url }}">
-            {% endthumbnail %}
-        </div>
-    </div>
+    {% include "post_item.html" with post=post %}
     {% endfor %}
     {% if page.has_other_pages %}
         {% include "paginator.html" with items=page paginator=paginator %}

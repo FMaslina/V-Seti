@@ -56,7 +56,17 @@ def post_view(request, username, post_id):
     post = get_object_or_404(Post, id=post_id)
     username = get_object_or_404(User, username=username)
     comments = post.comments.all()
-    return render(request, 'post.html', {"post": post, "username": username, "comments": comments})
+    if request.method == "POST":
+        form = NewCommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.author = request.user
+            comment.post = get_object_or_404(Post, id=post_id)
+            comment.save()
+            return redirect('post', username, post.id)
+        return render(request, 'post.html', {"form": form, "post": post, "username": username, "comments": comments})
+    form = NewCommentForm()
+    return render(request, 'post.html', {"form": form, "post": post, "username": username, "comments": comments})
 
 
 def post_edit(request, username, post_id):
@@ -64,9 +74,7 @@ def post_edit(request, username, post_id):
     username = get_object_or_404(User, username=username)
     is_edit = True
     if post.author != request.user:
-        return redirect(
-            'post', post.author.username, post.id
-        )
+        return redirect('post', post.author.username, post.id)
     if request.method == "POST":
         form = NewPostForm(request.POST, instance=post, files=request.FILES or None)
         if form.is_valid():
@@ -103,14 +111,33 @@ def server_error(request):
     return render(request, "misc/500.html", status=500)
 
 
-@login_required
-def add_comment(request, post_id, username):
+
+
+
+def edit_comment(request, post_id, username, comment_id):
     post = get_object_or_404(Post, id=post_id)
-    username = get_object_or_404(User, username=username)
-    form = NewCommentForm(request.POST or None)
-    if form.is_valid():
-        comment = form.save(commit=False)
-        comment.author = request.user
-        comment.post = get_object_or_404(Post, post_id=post_id)
-        comment.save()
-    return redirect('post', username, post.id)
+    comment = get_object_or_404(Comment, id=comment_id)
+    is_edit = True
+    if request.user != comment.author:
+        return redirect('post', username, post.id)
+    if request.method == "POST":
+        form = NewCommentForm(request.POST, instance=comment)
+        if form.is_valid():
+            comment.save()
+            return redirect('post', username, post.id)
+        return render(request, 'post.html', {"form": form, "post": post, "username": username, "is_edit": is_edit,
+                                             "comment": comment})
+    form = NewCommentForm(instance=comment)
+    return render(request, 'post.html', {"form": form, "post": post, "username": username, "is_edit": is_edit,
+                                         "comment": comment})
+
+
+def delete_comment(request, post_id, username, comment_id):
+    post = get_object_or_404(Post, id=post_id)
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user != comment.author:
+        return redirect('post', username, post.id)
+    if request.method == "POST":
+        comment.delete()
+        return redirect('post', username, post.id)
+    return render(request, 'post.html', {"post": post, "username": username, "comment": comment})
